@@ -1,0 +1,41 @@
+#dashboardHeader {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+#balai {
+    width: 100%;
+    max-width: 500px;
+}
+
+#welcome-message {
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+#welcome-paragraph {
+    text-align: justify;
+}
+
+.signature {
+    font-size: 0.875rem;
+    color: #555;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+    background-color: #f8f9fa;
+}
+
+.card-header {
+    border-bottom: 1px solid #ddd;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.text-end {
+    text-align: right;
+}
