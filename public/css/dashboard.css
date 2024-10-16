@@ -39,3 +39,8 @@
 .text-end {
     text-align: right;
 }
+
+#dashboard-container {
+    margin-top: 100px !important
+}
+

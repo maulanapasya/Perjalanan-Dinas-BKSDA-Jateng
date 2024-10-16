@@ -3,7 +3,6 @@
     <title>Dashboard</title>
 </head>
 
-<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 <link href="{{ asset('css/dashboard.css') }}" rel="stylesheet">
 {{-- <div class="card">
     <div class="card-header" id="dashboardHeader">Sambutan Kepala Balai</div>
@@ -36,7 +35,7 @@
     </div>
 </div> --}}
 
-<div class="container mt-5">
+<div id="dashboard-container" class="container mt-5">
     <div class="card shadow-sm">
         <div class="card-header text-center bg-light">
             <h5>Sambutan Kepala Balai</h5>

@@ -1,0 +1,23 @@
+#formContainer {
+    margin-top: 100px;
+    margin-bottom: 60px;
+}
+
+#tambahBtn{
+    margin-top: 10px;
+    margin-bottom: 20px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#pelaksana-instruction {
+    color: grey;
+    font-weight: bolder;
+    text-align: center;
+}
+
+#pelaksana-title {
+    text-align: center;
+    font-weight: 450;
+}
