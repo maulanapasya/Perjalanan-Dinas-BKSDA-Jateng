@@ -122,8 +122,9 @@ class PerjalananDinasController extends Controller
     {
         $perjalananDinas = PerjalananDinas::with('pelaksanaDinas','kegiatan.program','satuanKerja','MAK')->findOrFail($id);
         // dd($perjalananDinas);
-        return view('show', compact('perjalananDinas'));
+        // return view('show', compact('perjalananDinas'));
         // return "<p>Testing data: " . $perjalananDinas->id_dinas . "</p>";
+        return response()->json($perjalananDinas);
     }
 
     // method untuk menampilkan form edit perjalanan dinas
