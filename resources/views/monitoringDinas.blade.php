@@ -8,55 +8,57 @@
 <script src="https://cdnjs.cloudfare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
 <link href="{{ asset('css/monitoringDinas.css') }}" rel="stylesheet">
 <body>
-    <div class="card">
+    <div class="container card monitoring-Dinas">
         {{-- <div class="card-header" id="monitoringHeader">Daftar Rincian Perjalanan Dinas</div> --}}
         <div class="card-body">
-            <h2 id="monitoringHeader">Daftar Rincian Perjalanan Dinas</h2>
-            <table id="monitoringTable" class="table">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Kode Satker</th>
-                        <th>MAK</th>
-                        <th>Nomor SP2D</th>
-                        <th>Program</th>
-                        <th>Kegiatan</th>
-                        <th>Nomor Surat Tugas</th>
-                        <th>Tanggal Surat Tugas</th>
-                        <th>Tanggal Mulai Dinas</th>
-                        <th>Tanggal Selesai Dinas</th>
-                        <th>Tujuan</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="monitoringBody">
-                    {{-- isi tabel dari database --}}
-                    @foreach ($perjalananDinas as $pd)
+            <h2 class="text-center" id="monitoringHeader">Daftar Rincian Perjalanan Dinas</h2>
+            <div class="table-responsive">
+                <table id="monitoringTable" class="table">
+                    <thead>
                         <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td>{{ $pd->satuanKerja->kode_satker}}</td>
-                            <td>{{ $pd->MAK->kode_mak}}</td>
-                            <td>{{ $pd->nomor_sp2d }}</td>
-                            <td>{{ $pd->kegiatan->program->kode_program }}</td>
-                            <td>{{ $pd->kegiatan->kode_kegiatan }}</td>
-                            <td>{{ $pd->nomor_surat_tugas}}</td>
-                            <td>{{ $pd->tanggal_surat_tugas }}</td>
-                            <td>{{ $pd->tanggal_mulai_dinas }}</td>
-                            <td>{{ $pd->tanggal_selesai_dinas }}</td>
-                            <td class="text-justify">{{ $pd->tujuan_dinas }}</td>
-                            <td>
-                                <button class="btn btn-primary btn-action detail-btn" data-id="{{ $pd->id_dinas }}">Detail</button>
-                                <button class="btn btn-warning btn-action edit-btn" data-id="{{ $pd->id_dinas }}">Ubah</button>
-                                <form id="deleteForm" action="{{ route('perjalanan-dinas.destroy', $pd->id_dinas) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-action delete-button" data-id="{{ $pd->id_dinas }}">Hapus</button>
-                                </form>
-                            </td>
+                            <th class="col-1">No.</th>
+                            <th class="col-2">Kode Satker</th>
+                            <th class="col-2">MAK</th>
+                            <th class="col-2">Nomor SP2D</th>
+                            <th class="col-2">Program</th>
+                            <th class="col-2">Kegiatan</th>
+                            <th class="col-3">Nomor Surat Tugas</th>
+                            <th class="col-2">Tanggal Surat Tugas</th>
+                            <th class="col-2">Tanggal Mulai Dinas</th>
+                            <th class="col-2">Tanggal Selesai Dinas</th>
+                            <th class="col-3">Tujuan</th>
+                            <th class="col-2">Aksi</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody id="monitoringBody">
+                        {{-- isi tabel dari database --}}
+                        @foreach ($perjalananDinas as $pd)
+                            <tr>
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $pd->satuanKerja->kode_satker}}</td>
+                                <td>{{ $pd->MAK->kode_mak}}</td>
+                                <td>{{ $pd->nomor_sp2d }}</td>
+                                <td>{{ $pd->kegiatan->program->kode_program }}</td>
+                                <td>{{ $pd->kegiatan->kode_kegiatan }}</td>
+                                <td>{{ $pd->nomor_surat_tugas}}</td>
+                                <td>{{ \Carbon\Carbon::parse($pd->tanggal_surat_tugas)->translatedFormat('d F Y') }}</td>
+                                <td>{{ \Carbon\Carbon::parse($pd->tanggal_mulai_dinas)->translatedFormat('d F Y') }}</td>
+                                <td>{{ \Carbon\Carbon::parse($pd->tanggal_selesai_dinas)->translatedFormat('d F Y') }}</td>
+                                <td class="text-justify">{{ $pd->tujuan_dinas }}</td>
+                                <td>
+                                    <button class="btn btn-primary btn-action detail-btn" data-id="{{ $pd->id_dinas }}">Detail</button>
+                                    <button class="btn btn-warning btn-action edit-btn" data-id="{{ $pd->id_dinas }}">Ubah</button>
+                                    <form id="deleteForm" action="{{ route('perjalanan-dinas.destroy', $pd->id_dinas) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-action delete-button" data-id="{{ $pd->id_dinas }}">Hapus</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 

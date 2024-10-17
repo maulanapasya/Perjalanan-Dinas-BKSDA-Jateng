@@ -1,0 +1,10 @@
+.monitoring-Dinas {
+    margin-top: 100px;
+}
+
+#monitoringTable th, #monitoringTable td {
+    text-align: center;
+    font-size: 0.85rem;
+    padding: 0.5rem;
+    vertical-align: middle;
+}
