@@ -1,3 +1,6 @@
+/* JavaScript blade view monitoringDinas */
+
+// untuk mengambil data perjalanan dinas berdasarkan ID
 document.addEventListener("DOMContentLoaded", function() {
     // Tombol Detail
     document.querySelectorAll('.detail-btn').forEach(button => {
@@ -65,3 +68,9 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 });
+
+// fungsi entri per page pagination
+function updateEntriesPerPage() {
+    const entries = document.getElementById('entriesPerPage').value;
+    window.location.href = `?entries=${entries}`;
+}

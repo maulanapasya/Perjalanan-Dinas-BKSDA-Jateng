@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\Collection;
 use App\Models\SatuanKerja;
 use App\Models\Program;
 use App\Models\Kegiatan;
@@ -126,6 +127,15 @@ class PerjalananDinasController extends Controller
         // return "<p>Testing data: " . $perjalananDinas->id_dinas . "</p>";
         return response()->json($perjalananDinas);
     }
+
+    // method pagination laravel
+    // public function index(Request $request)
+    // {
+    //     // Ambil nilai 'entries' dari parameter query, default 10 jika tidak ada
+    //     $entriesPerPage = $request->input('entries', 10); // Default 10 entri per halaman
+    //     $perjalananDinas = PerjalananDinas::with(['pelaksanaDinas','satuanKerja', 'MAK', 'kegiatan.program'])->paginate($entriesPerPage);
+    //     return view('monitoringDinas', compact('perjalananDinas'));
+    // }
 
     // method untuk menampilkan form edit perjalanan dinas
     public function edit($id)
