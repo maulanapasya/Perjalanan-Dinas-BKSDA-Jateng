@@ -19,22 +19,6 @@
     <link href="img/bksda.png" rel="icon" />
   </head>
 
-
-  {{-- <body id="headerBody">
-    <header id="header" class="header fixed-top d-flex align-items-center">
-      <div class="d-flex align-items-center justify-content-between">
-        <a class="logo d-flex align-items-center">
-          <!-- nanti perlu dikasi href buat direct ke dashboard -->
-          <img src="<?php echo asset('img/bksda.png') ?>" alt="Balai KSDA" />
-          <span class="d-none d-lg-block">BKSDA Jateng</span>
-        </a>
-      </div>
-      <!-- End Logo -->
-    </header>
-  <!-- End Header -->
-  </body> --}}
-
-
   <!-- header.blade.php -->
   <header id="header" class="header fixed-top bg-light shadow-sm">
     <div class="container d-flex align-items-center justify-content-between py-2">
@@ -44,7 +28,5 @@
         </a>
     </div>
   </header>
-  {{-- @include('sideNav') --}}
 
-  {{-- <body style="max-width: 1000px; margin: auto; padding-top: 70px"></body> --}}
 </html>

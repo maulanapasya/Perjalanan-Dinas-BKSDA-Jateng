@@ -11,21 +11,21 @@
     <div class="container card monitoring-Dinas">
         {{-- <div class="card-header" id="monitoringHeader">Daftar Rincian Perjalanan Dinas</div> --}}
         <div class="card-body">
-            <h2 class="text-center" id="monitoringHeader">Daftar Rincian Perjalanan Dinas</h2>
 
-            <div id="filterSection">
-                <input type="text" class="search-box" placeholder="Kode Satker / MAK / Nomor SP2D / Program / Kegiatan / Nomor Surat Tugas / Tujuan">
-                <div>
-                    <button class="btn btn-light">Sudah Terlaksana</button>
-                    <button class="btn btn-light">Belum Terlaksana</button>
-                    <button class="btn btn-light">30 hari terakhir</button>
-                    <button class="btn btn-light">60 hari terakhir</button>
-                    <select id="entriesPerPage" class="form-select form-select-sm" onchange="updateEntriesPerPage()">
-                        <option value="5" {{ request('entries') == 5 ? 'selected' : '' }}>5</option>
-                        <option value="10" {{ request('entries') == 10 ? 'selected' : '' }}>10</option>
-                        <option value="25" {{ request('entries') == 25 ? 'selected' : '' }}>25</option>
-                        <option value="50" {{ request('entries') == 50 ? 'selected' : '' }}>50</option>
-                    </select>
+            <div class="header-container">
+                <h2 class="text-center" id="monitoringHeader">Daftar Rincian Perjalanan Dinas</h2>
+                <div id="filterSection">
+                    <div class="button-group">
+                        <button class="btn btn-light">Ekspor ke .xlsx</button>
+                        <button class="btn btn-light">Sudah Terlaksana</button>
+                        <button class="btn btn-light">Belum Terlaksana</button>
+                        <button class="btn btn-light">30 hari terakhir</button>
+                        <button class="btn btn-light">60 hari terakhir</button>
+                    </div>
+                    <div class="search-group">
+                        <label for="search-box" class="search-label">Cari berdasarkan:</label>
+                        <input type="text" id="search-box" class="search-box" placeholder="Kode Satker / MAK / Nomor SP2D / Program / Kegiatan / Nomor Surat Tugas / Tujuan">
+                    </div>
                 </div>
             </div>
 
@@ -44,14 +44,14 @@
                             <th class="col-2">Tanggal Mulai Dinas</th>
                             <th class="col-2">Tanggal Selesai Dinas</th>
                             <th class="col-3">Tujuan</th>
-                            <th class="col-2">Aksi</th>
+                            <th class="col-4">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="monitoringBody">
                         {{-- isi tabel dari database --}}
-                        @foreach ($perjalananDinas as $pd)
+                        @foreach ($perjalananDinas as $index => $pd)
                             <tr>
-                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ ($perjalananDinas->currentPage() - 1) * $perjalananDinas->perPage() + $index + 1 }}</td>
                                 <td>{{ $pd->satuanKerja->kode_satker}}</td>
                                 <td>{{ $pd->MAK->kode_mak}}</td>
                                 <td>{{ $pd->nomor_sp2d }}</td>

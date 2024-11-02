@@ -36,5 +36,3 @@ Route::get('/perjalanan-dinas/{id}/edit',[PerjalananDinasController::class,'edit
 Route::put('/perjalanan-dinas/{id}',[PerjalananDinasController::class,'update'])->name('perjalanan-dinas.update');
 
 Route::delete('/perjalanan-dinas/{id}',[PerjalananDinasController::class,'destroy'])->name('perjalanan-dinas.destroy');
-
-Route::get('/monitoring-dinas', [PerjalananDinasController::class, 'index'])->name('perjalanan-dinas.index');
