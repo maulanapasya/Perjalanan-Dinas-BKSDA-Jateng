@@ -25,7 +25,15 @@
         <div class="logo d-flex align-items-center">
             <img id="logo" src="{{ asset('img/bksda.png') }}" alt="Balai KSDA" style="height: 40px;">
             <span id="balai" class="d-none d-lg-block ms-2 fw-bold text-dark">Balai KSDA Jawa Tengah</span>
-        </a>
+        </div>
+        <nav class="nav d-flex align-items-center">
+          <a href="{{ route('dashboard') }}" class="nav-link text-dark fw-semibold">Dashboard</a>
+          <a href="{{ route('formInputDinas') }}" class="nav-link text-dark fw-semibold">Form Input</a>
+          <a href="{{ route('monitoringDinas') }}" class="nav-link text-dark fw-semibold">Data Perjalanan Dinas</a>
+          <a href="#" class="nav-link text-dark">
+              <i class="bi bi-person-circle" style="font-size: 1.5em;"></i>
+          </a>
+        </nav>
     </div>
   </header>
 
