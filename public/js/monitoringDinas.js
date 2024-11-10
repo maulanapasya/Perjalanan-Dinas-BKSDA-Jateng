@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 })
                 .then(data => {
                     // Memastikan data JSON diterima dengan benar, debug only (comment if not needed)
-                    // console.log('API Response: ',data);
+                    console.log('API Response: ',data);
 
                     // Check if MAK and kode_mak exist, debug only (comment if not needed)
                     // if (!data.MAK) {

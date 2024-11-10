@@ -27,7 +27,7 @@
             <span id="balai" class="d-none d-lg-block ms-2 fw-bold text-dark">Balai KSDA Jawa Tengah</span>
         </div>
         <nav class="nav d-flex align-items-center">
-          <a href="{{ route('dashboard') }}" class="nav-link text-dark fw-semibold">Dashboard</a>
+          <a href="{{ route('home') }}" class="nav-link text-dark fw-semibold">Home</a>
           <a href="{{ route('formInputDinas') }}" class="nav-link text-dark fw-semibold">Form Input</a>
           <a href="{{ route('monitoringDinas') }}" class="nav-link text-dark fw-semibold">Data Perjalanan Dinas</a>
           <a href="#" class="nav-link text-dark">

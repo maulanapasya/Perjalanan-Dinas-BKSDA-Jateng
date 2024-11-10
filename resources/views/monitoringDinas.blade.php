@@ -1,12 +1,20 @@
-@include('headerMain')
-<head>
+{{-- @include('headerMain') --}}
+{{-- <head>
     <title>Daftar Perjalanan Dinas</title>
-</head>
+</head> --}}
 
+@extends('layouts.app')
+
+@section('content')
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 <script src="{{ asset('js/monitoringDinas.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudfare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
 <link href="{{ asset('css/monitoringDinas.css') }}" rel="stylesheet">
+
 <body>
     <div class="container card monitoring-Dinas">
         {{-- <div class="card-header" id="monitoringHeader">Daftar Rincian Perjalanan Dinas</div> --}}
@@ -126,3 +134,5 @@
         </div>
     </div>
 </body>
+
+@endsection

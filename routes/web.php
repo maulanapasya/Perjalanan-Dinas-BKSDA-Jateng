@@ -1,17 +1,36 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MonitoringDinasController;
 use App\Http\Controllers\PerjalananDinasController;
 
-// Default Laravel
-// Route::get('/', function () {
-//     return view('welcome');
-// });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->name('dashboard');
+Route::get('/', function () {
+    return redirect('/login');
+});
+
+// Route::get('/dashboard', function () {
+//     return view('dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__.'/auth.php';
+
+// Route::get('/home', function () {
+//     return view('home');
+// })->name('home');
+
+Route::get('/home', function () {
+    return view('home');
+})->middleware(['auth'])->name('home');
+
+
 
 Route::get('/formInputDinas', function () {
     return view('formInputDinas');
@@ -21,9 +40,9 @@ Route::get('/monitoringDinas', function () {
     return view('monitoringDinas');
 })->name('monitoringDinas');
 
-Route::get('/loginAuth', function () {
-    return view('loginAuth');
-})->name('loginAuth');
+// Route::get('/loginAuth', function () {
+//     return view('loginAuth');
+// })->name('loginAuth');
 
 Route::post('/perjalanan-dinas', [PerjalananDinasController::class, 'store'])->name('perjalanan-dinas.store');
 
