@@ -11,7 +11,7 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdnjs.cloudfare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
 <link href="{{ asset('css/monitoringDinas.css') }}" rel="stylesheet">
 <script src="{{ asset('js/monitoringDinas.js') }}"></script>
 
@@ -25,10 +25,10 @@
                 <div id="filterSection">
                     <div class="button-group">
                         <button class="btn btn-light">Ekspor ke .xlsx</button>
-                        <button class="btn btn-light">Sudah Terlaksana</button>
+                        {{-- <button class="btn btn-light">Sudah Terlaksana</button>
                         <button class="btn btn-light">Belum Terlaksana</button>
                         <button class="btn btn-light">30 hari terakhir</button>
-                        <button class="btn btn-light">60 hari terakhir</button>
+                        <button class="btn btn-light">60 hari terakhir</button> --}}
                     </div>
                     <div class="search-group">
                         <label for="search-box" class="search-label">Cari berdasarkan:</label>
@@ -83,8 +83,8 @@
                         @endforeach
                     </tbody>
                 </table>
-                <div class="d-flex justify-content-center mt-3">
-                    {{ $perjalananDinas->links() }}
+                <div id="pagination-links" class="d-flex justify-content-center mt-3">
+                    {{-- {{ $perjalananDinas->links() }} --}}
                 </div>   
             </div>         
         </div>
@@ -109,9 +109,67 @@
 
     {{-- modal untuk edit perjalanan dinas --}}
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
-                {{-- isi modal dari database --}}
+                <div class="modal-header d-flex justify-content-center">
+                    <h5 class="modal-title" id="editModalLabel">Edit Perjalanan Dinas</h5>
+                    <button type="button" class="close position-absolute" style="right: 1em;" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <div class="form-group">
+                            <label for="kodeSatker">Kode Satker</label>
+                            <input type="text" class="form-control" id="kodeSatker" name="kodeSatker" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="MAK">MAK</label>
+                            <input type="text" class="form-control" id="MAK" name="MAK" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="program">Program</label>
+                            <input type="text" class="form-control" id="program" name="program" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="kegiatan">Kegiatan</label>
+                            <input type="text" class="form-control" id="kegiatan" name="kegiatan" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="nomorSuratTugas">Nomor Surat Tugas</label>
+                            <input type="text" class="form-control" id="nomorSuratTugas" name="nomorSuratTugas" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="nomorSP2D">Nomor SP2D</label>
+                            <input type="text" class="form-control" id="nomorSP2D" name="nomorSP2D" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tanggalSuratTugas">Tanggal Surat Tugas</label>
+                            <input type="date" class="form-control" id="tanggalSuratTugas" name="tanggalSuratTugas" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tanggalMulaiDinas">Tanggal Mulai Dinas</label>
+                            <input type="date" class="form-control" id="tanggalMulaiDinas" name="tanggalMulaiDinas" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tanggalSelesaiDinas">Tanggal Selesai Dinas</label>
+                            <input type="date" class="form-control" id="tanggalSelesaiDinas" name="tanggalSelesaiDinas" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tujuan">Tujuan</label>
+                            <textarea class="form-control" id="tujuan" name="tujuan" required></textarea>
+                        </div>
+                        <div id="pelaksanaContainer">
+                            <!-- Pelaksana fields will be dynamically added here -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -133,6 +191,7 @@
             </div>
         </div>
     </div>
+    
 </body>
 
 @endsection

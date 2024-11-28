@@ -75,99 +75,302 @@ function updateEntriesPerPage() {
     window.location.href = `?entries=${entries}`;
 }
 
-
-// $(document).ready(function () {
-//     $('#search-box').on('input', function () {
-//         const keyword = $(this).val();
-        
-//         $.ajax({
-//             url: "{{ route('monitoringDinas.search') }}",
-//             method: "GET",
-//             data: { keyword: keyword },
-//             success: function (data) {
-//                 let rows = '';
-//                 data.forEach(function (item, index) {
-//                     rows += `
-//                         <tr>
-//                             <td>${index + 1}</td>
-//                             <td>${item.satuan_kerja?.kode_satker || ''}</td>
-//                             <td>${item.m_a_k?.kode_mak || ''}</td>
-//                             <td>${item.nomor_sp2d || ''}</td>
-//                             <td>${item.kegiatan?.program?.kode_program || ''}</td>
-//                             <td>${item.kegiatan?.kode_kegiatan || ''}</td>
-//                             <td>${item.nomor_surat_tugas || ''}</td>
-//                             <td>${item.tanggal_surat_tugas || ''}</td>
-//                             <td>${item.tanggal_mulai_dinas || ''}</td>
-//                             <td>${item.tanggal_selesai_dinas || ''}</td>
-//                             <td>${item.tujuan_dinas || ''}</td>
-//                             <td>
-//                                 <button class="btn btn-primary btn-action detail-btn" data-id="${item.id_dinas}">Detail</button>
-//                                 <button class="btn btn-warning btn-action edit-btn" data-id="${item.id_dinas}">Ubah</button>
-//                                 <form id="deleteForm" action="/perjalanan-dinas/${item.id_dinas}" method="POST">
-//                                     @csrf
-//                                     @method('DELETE')
-//                                     <button type="submit" class="btn btn-danger btn-action delete-button" data-id="${item.id_dinas}">Hapus</button>
-//                                 </form>
-//                             </td>
-//                         </tr>`;
-//                 });
-//                 $('#monitoringBody').html(rows);
-//             },
-//             error: function () {
-//                 console.error('Pencarian gagal.');
-//             }
-//         });
-//     });
-// });
-
 $(document).ready(function () {
-    $('#search-box').on('input', function () {
-        const keyword = $(this).val();
-        const route = $(this).data('route'); // Ambil route dari atribut data-route
+    let currentPage = 1;
+    const entriesPerPage = $('#entriesPerPage').val() || 10;
+
+    // Initial load
+    loadData(currentPage);
+    
+    function loadData(page = 1) {
+        const keyword = $('#search-box').val();
+        const route = $('#search-box').data('route');
+        const entriesPerPage = $('#entriesPerPage').val() || 10;
 
         $.ajax({
-            url: route, // Gunakan route dari atribut
+            url: route,
             method: "GET",
-            data: { query: keyword },
-            success: function (data) {
-                let rows = '';
-                data.forEach(function (item, index) {
-                    const formatDate = (date) => {
-                        if (!date) return ''; // Jika tanggal null atau undefined, kembalikan string kosong
-                        const options = { day: '2-digit', month: 'long', year: 'numeric' };
-                        return new Intl.DateTimeFormat('id-ID', options).format(new Date(date));
-                    };
-                    
-                    rows += `
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td>${item.satuan_kerja?.kode_satker || ''}</td>
-                            <td>${item.m_a_k?.kode_mak || ''}</td>
-                            <td>${item.nomor_sp2d || ''}</td>
-                            <td>${item.kegiatan?.program?.kode_program || ''}</td>
-                            <td>${item.kegiatan?.kode_kegiatan || ''}</td>
-                            <td>${item.nomor_surat_tugas || ''}</td>
-                            <td>${formatDate(item.tanggal_surat_tugas)}</td>
-                            <td>${formatDate(item.tanggal_mulai_dinas)}</td>
-                            <td>${formatDate(item.tanggal_selesai_dinas)}</td>
-                            <td class="text-justify">${item.tujuan_dinas || ''}</td>
-                            <td>
-                                <button class="btn btn-primary btn-action detail-btn" data-id="${item.id_dinas}">Detail</button>
-                                <button class="btn btn-warning btn-action edit-btn" data-id="${item.id_dinas}">Ubah</button>
-                                <form id="deleteForm" action="/perjalanan-dinas/${item.id_dinas}" method="POST">
-                                    <input type="hidden" name="_token" value="${$('meta[name="csrf-token"]').attr('content')}">
-                                    <input type="hidden" name="_method" value="DELETE">
-                                    <button type="submit" class="btn btn-danger btn-action delete-button" data-id="${item.id_dinas}">Hapus</button>
-                                </form>
-                            </td>
-                        </tr>`;
-                });
-                $('#monitoringBody').html(rows);
+            data: { 
+                query: keyword,
+                page: page,
+                entries: entriesPerPage
+            },
+            success: function (response) {
+                renderTable(response);
+                updatePagination(response.pagination);
+                attachEventHandlers();
             },
             error: function () {
                 console.error('Pencarian gagal.');
             }
         });
+    }
+
+    function renderTable(response) {
+        let rows = '';
+        const startIndex = ((response.pagination.current_page - 1) * response.pagination.per_page);
+        
+        if (Array.isArray(response.data)) {
+            response.data.forEach(function (item, index) {
+                const formatDate = (date) => {
+                    if (!date) return '';
+                    const options = { day: '2-digit', month: 'long', year: 'numeric' };
+                    return new Intl.DateTimeFormat('id-ID', options).format(new Date(date));
+                };
+                
+                rows += `<tr>
+                    <td>${startIndex + index + 1}</td>
+                    <td>${item.satuan_kerja?.kode_satker || ''}</td>
+                    <td>${item.m_a_k?.kode_mak || ''}</td>
+                    <td>${item.nomor_sp2d || ''}</td>
+                    <td>${item.kegiatan?.program?.kode_program || ''}</td>
+                    <td>${item.kegiatan?.kode_kegiatan || ''}</td>
+                    <td>${item.nomor_surat_tugas || ''}</td>
+                    <td>${formatDate(item.tanggal_surat_tugas)}</td>
+                    <td>${formatDate(item.tanggal_mulai_dinas)}</td>
+                    <td>${formatDate(item.tanggal_selesai_dinas)}</td>
+                    <td class="text-justify">${item.tujuan_dinas || ''}</td>
+                    <td>
+                        <button class="btn btn-primary btn-action detail-btn" data-id="${item.id_dinas}">Detail</button>
+                        <button class="btn btn-warning btn-action edit-btn" data-id="${item.id_dinas}">Ubah</button>
+                        <form class="deleteForm d-inline" action="/perjalanan-dinas/${item.id_dinas}" method="POST">
+                            <input type="hidden" name="_token" value="${$('meta[name="csrf-token"]').attr('content')}">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button type="submit" class="btn btn-danger btn-action delete-button" data-id="${item.id_dinas}">Hapus</button>
+                        </form>
+                    </td>
+                </tr>`;
+            });
+        }
+        $('#monitoringBody').html(rows);
+    }
+
+    function updatePagination(pagination) {
+        let paginationHtml = '';
+        
+        if (pagination.last_page > 1) {
+            paginationHtml += '<ul class="pagination justify-content-center">';
+            
+            // Previous button
+            paginationHtml += `
+                <li class="page-item ${pagination.current_page === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${pagination.current_page - 1}" ${pagination.current_page === 1 ? 'tabindex="-1" aria-disabled="true"' : ''}>
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>`;
+            
+            // Page numbers
+            for (let i = 1; i <= pagination.last_page; i++) {
+                paginationHtml += `
+                    <li class="page-item ${i === pagination.current_page ? 'active' : ''}">
+                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                    </li>`;
+            }
+            
+            // Next button
+            paginationHtml += `
+                <li class="page-item ${pagination.current_page === pagination.last_page ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${pagination.current_page + 1}" ${pagination.current_page === pagination.last_page ? 'tabindex="-1" aria-disabled="true"' : ''}>
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>`;
+            
+            paginationHtml += '</ul>';
+        }
+        
+        $('#pagination-links').html(paginationHtml);
+    }
+
+    function attachEventHandlers() {
+        // Detail button handler
+        $('.detail-btn').on('click', function() {
+            const idDinas = $(this).data('id');
+            fetch(`/perjalanan-dinas/${idDinas}`)
+                .then(response => response.json())
+                .then(data => {
+                    const modalBody = document.querySelector('#detailModal .modal-body');
+                    modalBody.innerHTML = `
+                        <p><strong>Kode Satker:</strong> ${data.satuan_kerja.kode_satker}</p>
+                        <p><strong>MAK:</strong> ${data.m_a_k.kode_mak}</p>
+                        <p><strong>Nomor SP2D:</strong> ${data.nomor_sp2d}</p>
+                        <p><strong>Program:</strong> ${data.kegiatan.program.kode_program}</p>
+                        <p><strong>Kegiatan:</strong> ${data.kegiatan.kode_kegiatan}</p>
+                        <p><strong>Nomor Surat Tugas:</strong> ${data.nomor_surat_tugas}</p>
+                        <p><strong>Tanggal Surat Tugas:</strong> ${data.tanggal_surat_tugas}</p>
+                        <p><strong>Tanggal Mulai Dinas:</strong> ${data.tanggal_mulai_dinas}</p>
+                        <p><strong>Tanggal Selesai Dinas:</strong> ${data.tanggal_selesai_dinas}</p>
+                        <p><strong>Tujuan:</strong> ${data.tujuan_dinas}</p>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Nama Pelaksana</th>
+                                    <th>No. Telp Pelaksana</th>
+                                    <th>Status Pegawai Pelaksana</th>
+                                    <th>Nilai yang dibayar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.pelaksana_dinas.map(pelaksana => `
+                                    <tr>
+                                        <td>${pelaksana.nama_pegawai}</td>
+                                        <td>${pelaksana.no_telp}</td>
+                                        <td>${pelaksana.status_pegawai}</td>
+                                        <td>${pelaksana.nilai_dibayar}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                    $('#detailModal').modal('show');
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+        // Edit button handler
+        $('.edit-btn').on('click', function() {
+            const idDinas = $(this).data('id');
+            fetch(`/perjalanan-dinas/${idDinas}/edit`)
+                .then(response => response.json())
+                .then(data => {
+                    // Populate form fields
+                    $('#editForm').attr('action', `/perjalanan-dinas/${idDinas}`);
+                    $('#kodeSatker').val(data.satuan_kerja.kode_satker);
+                    $('#MAK').val(data.m_a_k.kode_mak);
+                    $('#program').val(data.kegiatan.program.kode_program);
+                    $('#kegiatan').val(data.kegiatan.kode_kegiatan);
+                    $('#nomorSuratTugas').val(data.nomor_surat_tugas);
+                    $('#nomorSP2D').val(data.nomor_sp2d);
+                    $('#tanggalSuratTugas').val(data.tanggal_surat_tugas);
+                    $('#tanggalMulaiDinas').val(data.tanggal_mulai_dinas);
+                    $('#tanggalSelesaiDinas').val(data.tanggal_selesai_dinas);
+                    $('#tujuan').val(data.tujuan_dinas);
+        
+                    // Clear and populate pelaksana fields
+                    const pelaksanaContainer = $('#pelaksanaContainer');
+                    pelaksanaContainer.empty();
+        
+                    if (data.pelaksana_dinas && Array.isArray(data.pelaksana_dinas)) {
+                        data.pelaksana_dinas.forEach((pelaksana, index) => {
+                            pelaksanaContainer.append(`
+                                <div class="pelaksana-entry border p-3 mb-3">
+                                    <h5>Pelaksana ${index + 1}</h5>
+                                    <input type="hidden" name="pelaksana[${index}][id]" value="${pelaksana.id}">
+                                    <div class="form-group">
+                                        <label>Nama Pegawai</label>
+                                        <input type="text" class="form-control" name="pelaksana[${index}][nama_pegawai]" value="${pelaksana.nama_pegawai}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Status Pegawai</label>
+                                        <input type="text" class="form-control" name="pelaksana[${index}][status_pegawai]" value="${pelaksana.status_pegawai}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>No. Telp</label>
+                                        <input type="text" class="form-control" name="pelaksana[${index}][no_telp]" value="${pelaksana.no_telp}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Nilai yang Dibayar</label>
+                                        <input type="text" class="form-control" name="pelaksana[${index}][nilai_dibayar]" value="${pelaksana.nilai_dibayar}" required>
+                                    </div>
+                                </div>
+                            `);
+                        });
+                    }
+        
+                    $('#editModal').modal('show');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat mengambil data');
+                });
+        });
+    
+        // Edit form submit handler
+        $('#editForm').on('submit', function(e) {
+            e.preventDefault();
+            const form = $(this);
+            const url = form.attr('action');
+            
+            // Get pelaksana data
+            const pelaksanaData = [];
+            $('.pelaksana-entry').each(function(index) {
+                pelaksanaData.push({
+                    id: $(this).find('input[name^="pelaksana["][name$="[id]"]').val(),
+                    nama_pegawai: $(this).find('input[name^="pelaksana["][name$="[nama_pegawai]"]').val(),
+                    status_pegawai: $(this).find('input[name^="pelaksana["][name$="[status_pegawai]"]').val(),
+                    no_telp: $(this).find('input[name^="pelaksana["][name$="[no_telp]"]').val(),
+                    nilai_dibayar: $(this).find('input[name^="pelaksana["][name$="[nilai_dibayar]"]').val()
+                });
+            });
+        
+            // Create data object matching controller expectations
+            const formData = {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                _method: 'PUT',
+                kodeSatker: $('#kodeSatker').val(),
+                MAK: $('#MAK').val(),
+                program: $('#program').val(),
+                kegiatan: $('#kegiatan').val(),
+                nomorSuratTugas: $('#nomorSuratTugas').val(),
+                nomorSP2D: $('#nomorSP2D').val(),
+                tanggalSuratTugas: $('#tanggalSuratTugas').val(),
+                tanggalMulaiDinas: $('#tanggalMulaiDinas').val(),
+                tanggalSelesaiDinas: $('#tanggalSelesaiDinas').val(),
+                tujuan: $('#tujuan').val(),
+                pelaksana: pelaksanaData
+            };
+        
+            $.ajax({
+                url: url,
+                method: 'POST',
+                data: formData,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'Accept': 'application/json'
+                },
+                success: function(response) {
+                    $('#editModal').modal('hide');
+                    alert('Data berhasil diupdate');
+                    loadData(currentPage);
+                },
+                error: function(xhr) {
+                    console.error('Error response:', xhr.responseJSON);
+                    alert('Terjadi kesalahan: ' + (xhr.responseJSON?.message || 'Unknown error'));
+                }
+            });
+        });
+
+        // Delete form handler
+        $('.deleteForm').on('submit', function(e) {
+            e.preventDefault();
+            if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+                this.submit();
+            }
+        });
+    }
+
+    // Search input handler with debouncing
+    let searchTimer;
+    $('#search-box').on('input', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+            currentPage = 1;
+            loadData(currentPage);
+        }, 300);
+    });
+
+    // Pagination click handler
+    $(document).on('click', '.pagination .page-link', function(e) {
+        e.preventDefault();
+        if (!$(this).parent().hasClass('disabled')) {
+            currentPage = $(this).data('page');
+            loadData(currentPage);
+        }
+    });
+
+    // Entries per page handler
+    $('#entriesPerPage').on('change', function() {
+        currentPage = 1;
+        loadData(currentPage);
     });
 });
 
@@ -190,49 +393,3 @@ $(document).on('submit', '.deleteForm', function (e) {
     console.log(`Delete submitted for ID: ${id}`);
     // Tambahkan logika untuk tombol hapus
 });
-
-
-// document.addEventListener("DOMContentLoaded", function() {
-//     const searchBox = document.getElementById('search-box');
-//     const monitoringBody = document.getElementById('monitoringBody');
-
-//     searchBox.addEventListener('input', function() {
-//         const query = searchBox.value;
-
-//         fetch(`/search-perjalanan-dinas?query=${query}`)
-//             .then(response => response.json())
-//             .then(data => {
-//                 // Clear the table body
-//                 monitoringBody.innerHTML = '';
-
-//                 // Populate the table with the filtered results
-//                 data.forEach((item, index) => {
-//                     const row = document.createElement('tr');
-//                     row.innerHTML = `
-//                         <td>${index + 1}</td>
-//                         <td>${item.kode_satker}</td>
-//                         <td>${item.kode_mak}</td>
-//                         <td>${item.nomor_sp2d}</td>
-//                         <td>${item.program}</td>
-//                         <td>${item.kegiatan}</td>
-//                         <td>${item.nomor_surat_tugas}</td>
-//                         <td>${item.tanggal_surat_tugas}</td>
-//                         <td>${item.tanggal_mulai_dinas}</td>
-//                         <td>${item.tanggal_selesai_dinas}</td>
-//                         <td>${item.tujuan}</td>
-//                         <td>
-//                             <button class="btn btn-primary btn-action detail-btn" data-id="${item.id_dinas}">Detail</button>
-//                             <button class="btn btn-warning btn-action edit-btn" data-id="${item.id_dinas}">Ubah</button>
-//                             <form id="deleteForm" action="/perjalanan-dinas/${item.id_dinas}" method="POST">
-//                                 @csrf
-//                                 @method('DELETE')
-//                                 <button type="submit" class="btn btn-danger btn-action delete-button" data-id="${item.id_dinas}">Hapus</button>
-//                             </form>
-//                         </td>
-//                     `;
-//                     monitoringBody.appendChild(row);
-//                 });
-//             })
-//             .catch(error => console.error('Error fetching data:', error));
-//     });
-// });

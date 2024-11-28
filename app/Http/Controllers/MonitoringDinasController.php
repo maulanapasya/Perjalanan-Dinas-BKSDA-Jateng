@@ -16,10 +16,39 @@ class monitoringDinasController extends Controller {
         return view('monitoringDinas', compact('perjalananDinas'));
     }
 
+    // public function search(Request $request)
+    // {
+    //     $query = $request->input('query');
+    //     $entriesPerPage = $request->input('entries', 10); // Ambil jumlah entri per halaman (default: 10)
+
+
+    //     $result = PerjalananDinas::with(['satuanKerja', 'MAK', 'kegiatan.program'])
+    //         ->whereHas('satuanKerja', function ($q) use ($query) {
+    //             $q->where('kode_satker', 'like', '%' . $query . '%');
+    //         })
+    //         ->orWhereHas('MAK', function ($q) use ($query) {
+    //             $q->where('kode_mak', 'like', '%' . $query . '%');
+    //         })
+    //         ->orWhereHas('kegiatan', function ($q) use ($query) {
+    //             $q->where('kode_kegiatan', 'like', '%' . $query . '%')
+    //             ->orWhereHas('program', function ($q2) use ($query) {
+    //                 $q2->where('kode_program', 'like', '%' . $query . '%');
+    //             });
+    //         })
+    //         ->orWhere('nomor_sp2d', 'like', '%' . $query . '%')
+    //         ->orWhere('nomor_surat_tugas', 'like', '%' . $query . '%')
+    //         ->orWhere('tujuan_dinas', 'like', '%' . $query . '%')
+    //         ->get();
+
+    //     return response()->json($result);
+    // }
+    
     public function search(Request $request)
     {
         $query = $request->input('query');
-
+        $page = $request->input('page', 1);
+        $entriesPerPage = $request->input('entries', 10);
+    
         $result = PerjalananDinas::with(['satuanKerja', 'MAK', 'kegiatan.program'])
             ->whereHas('satuanKerja', function ($q) use ($query) {
                 $q->where('kode_satker', 'like', '%' . $query . '%');
@@ -36,24 +65,16 @@ class monitoringDinasController extends Controller {
             ->orWhere('nomor_sp2d', 'like', '%' . $query . '%')
             ->orWhere('nomor_surat_tugas', 'like', '%' . $query . '%')
             ->orWhere('tujuan_dinas', 'like', '%' . $query . '%')
-            ->get();
-
-        return response()->json($result);
+            ->paginate($entriesPerPage);
+    
+        return response()->json([
+            'data' => $result->items(),
+            'pagination' => [
+                'total' => $result->total(),
+                'per_page' => $result->perPage(),
+                'current_page' => $result->currentPage(),
+                'last_page' => $result->lastPage(),
+            ]
+        ]);
     }
-
-    // public function search(Request $request)
-    // {
-    //     $query = $request->input('query');
-
-    //     $results = PerjalananDinas::where('kode_satker', 'LIKE', "%{$query}%")
-    //         ->orWhere('kode_mak', 'LIKE', "%{$query}%")
-    //         ->orWhere('nomor_sp2d', 'LIKE', "%{$query}%")
-    //         ->orWhere('program', 'LIKE', "%{$query}%")
-    //         ->orWhere('kegiatan', 'LIKE', "%{$query}%")
-    //         ->orWhere('nomor_surat_tugas', 'LIKE', "%{$query}%")
-    //         ->orWhere('tujuan', 'LIKE', "%{$query}%")
-    //         ->get();
-
-    //     return response()->json($results);
-    // }
 }

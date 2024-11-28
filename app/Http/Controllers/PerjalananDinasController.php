@@ -38,21 +38,6 @@ class PerjalananDinasController extends Controller
             'pelaksana.*.nilai_dibayar' => 'required|string'
         ]);
 
-        // // mendapatkan id kegiatan berdasarkan kegiatan yang diinputkan
-        // $kegiatan = Kegiatan::firstOrCreate(['kegiatan' => $request->kegiatan]);
-
-        // // mendapatkan id satker berdasarkan kode satker yang diinputkan
-        // $satuanKerja = SatuanKerja::firstOrCreate(['kode_satker' => $request->kodeSatker]);
-
-        // dd($validated['pelaksana']);
-
-        // memfilter data yang berisi value null pada array pelaksana
-        // $validated['pelaksana'] = array_filter($validated['pelaksana']);
-
-        // $validated['pelaksana'] = array_values(array_filter($validated['pelaksana'], function($pelaksana) {
-        //     return !is_null($pelaksana['nama_pegawai']) && !is_null($pelaksana['no_telp']) && !is_null($pelaksana['nilai_dibayar']) && !is_null($pelaksana['status_pegawai']);
-        // }));
-
         DB::beginTransaction();
         try {
             // input untuk tabel program
@@ -127,15 +112,6 @@ class PerjalananDinasController extends Controller
         // return "<p>Testing data: " . $perjalananDinas->id_dinas . "</p>";
         return response()->json($perjalananDinas);
     }
-
-    // method pagination laravel
-    // public function index(Request $request)
-    // {
-    //     // Ambil nilai 'entries' dari parameter query, default 10 jika tidak ada
-    //     $entriesPerPage = $request->input('entries', 10); // Default 10 entri per halaman
-    //     $perjalananDinas = PerjalananDinas::with(['pelaksanaDinas','satuanKerja', 'MAK', 'kegiatan.program'])->paginate($entriesPerPage);
-    //     return view('monitoringDinas', compact('perjalananDinas'));
-    // }
 
     // method untuk menampilkan form edit perjalanan dinas
     public function edit($id)
@@ -212,17 +188,6 @@ class PerjalananDinasController extends Controller
                 'id_kegiatan' => $kegiatan->id_kegiatan,
                 'id_satker' => $satuanKerja->id_satker
             ]);
-
-            // update data pelaksana dinas yang ada pada perjalanan dinas
-            // foreach ($validated['pelaksana'] as $pelaksana) {
-            //     $pelaksanaDinas = PelaksanaDinas::where('id_dinas', $perjalananDinas->id_dinas)->firstOrFail();
-            //     $pelaksanaDinas->update([
-            //         'nama_pegawai' => $pelaksana['nama_pegawai'],
-            //         'status_pegawai' => $pelaksana['status_pegawai'],
-            //         'no_telp' => $pelaksana['no_telp'],
-            //         'nilai_dibayar' => $pelaksana['nilai_dibayar']
-            //     ]);
-            // }
 
             // update data pelaksana dinas
             foreach ($validated['pelaksana'] as $pelaksana) {
