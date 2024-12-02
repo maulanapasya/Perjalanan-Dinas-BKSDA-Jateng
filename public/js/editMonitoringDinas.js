@@ -1,119 +1,4 @@
-/* JavaScript blade view formInputDinas */
-
-// fungsi untuk menghapus dan mengedit form input pegawai pelaksana
-function handleDeleteClick(event) {
-    var row = event.target.closest('tr');
-    if(row){
-        row.remove();
-        togglePelaksanaInstruction();
-    }
-}
-
-// Fungsi validasi huruf
-function validateLetters(event) {
-    var value = event.target.value;
-    event.target.value = value.replace(/[^a-zA-Z\s]/g, '');
-}
-
-// Fungsi validasi angka
-function validateNumbers(event) {
-    var value = event.target.value;
-    event.target.value = value.replace(/[^0-9]/g, '');
-}
-
-// Fungsi validasi nominal (angka tanpa nol di depan)
-function validateNominal(event) {
-    var value = event.target.value;
-    // Menghapus karakter non-digit
-    value = value.replace(/[^0-9]/g, '');
-    // Menghapus nol di depan
-    value = value.replace(/^0+/, '');
-    event.target.value = value;
-}    
-
-// fungsi agar form nilai dibayar diformatkan sesuai mata uang rupiah
-function formatRupiah(angka) {
-    var number_string = angka.replace(/[^,\d]/g, '').toString(),
-        split = number_string.split(','),
-        sisa = split[0].length % 3,
-        rupiah = split[0].substr(0,sisa),
-        ribuan = split[0].substr(sisa).match(/\d{3}/gi);
-    
-    //titik sebagai pemisah pada format mata uang rupiah
-    if(ribuan){
-        separator = sisa ? '.' : '';
-        rupiah += separator + ribuan.join('.');
-    }
-
-    rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
-    return rupiah;
-}
-
-// fungsi untuk mengedit form input pegawai pelaksana
-function handleEditClick(event) {
-    var editBtn = event.target;
-    var row = editBtn.closest('tr');
-    var inputs = row.querySelectorAll('input.form-control');
-    var isEditing = editBtn.textContent === 'Ubah';
-
-    if (isEditing) {
-        inputs.forEach(input => {
-            input.removeAttribute('readonly');
-            // Menambahkan event listener untuk validasi
-            if (input.name.includes('nama_pegawai')) {
-                input.addEventListener('input', validateLetters);
-            } else if (input.name.includes('no_telp')) {
-                input.addEventListener('input', validateNumbers);
-            } else if (input.name.includes('nilai_dibayar')) {
-                input.addEventListener('input', function(event) {
-                    event.target.value = formatRupiah(event.target.value);
-                });
-            } else if (input.name.includes('status_pegawai')) {
-                input.addEventListener('input', validateLetters);
-            }
-        });
-        editBtn.textContent = 'Simpan';
-    } else {
-        // Memastikan tidak ada field yang kosong
-        var allFilled = true;
-        inputs.forEach(input => {
-            if (input.value.trim() === '') {
-                allFilled = false;
-                input.classList.add('is-invalid');
-            } else {
-                input.classList.remove('is-invalid');
-            }
-        });
-
-        if (!allFilled) {
-            alert('Semua field pelaksana harus diisi.');
-            return;
-        }
-
-        inputs.forEach(input => {
-            input.setAttribute('readonly', true);
-        });
-
-        editBtn.textContent = 'Ubah';
-    }
-}
-
-// fungsi untuk menampilkan atau menyembuyikan instruksi tambah pegawai pelaksana
-function togglePelaksanaInstruction() {
-    var pelaksanaBody = document.getElementById('pelaksana-body');
-    var instructionDiv = document.getElementById('pelaksana-instruction');
-    //Jika tidak ada baris di dalam tabel, tampilkan instruksi
-    if (pelaksanaBody.rows.length === 0) {
-        instructionDiv.style.display = 'block';
-    } else { //Jika ada baris di dalam tabel, sembunyikan instruksi
-        instructionDiv.style.display = 'none';
-    }
-}
-
-// memanggil form tambah pegawai pelaksana sebelum menambahkan form input pegawai pelaksana
-document.addEventListener('DOMContentLoaded', (event) => {
-    togglePelaksanaInstruction();
-});
+/* JavaScript blade view edit data monitoring dinas */
 
 document.addEventListener("DOMContentLoaded", function() {
     /* Validasi realtime jika form sudah diisi, tetapi kembali dikosongi */
@@ -229,6 +114,24 @@ document.addEventListener("DOMContentLoaded", function() {
         var formattedInput = formatRupiah(cleanInput); //format input ke rupiah
         e.target.value = formattedInput;
     });
+
+    // fungsi agar form nilai dibayar diformatkan sesuai mata uang rupiah
+    function formatRupiah(angka) {
+        var number_string = angka.replace(/[^,\d]/g, '').toString(),
+            split = number_string.split(','),
+            sisa = split[0].length % 3,
+            rupiah = split[0].substr(0,sisa),
+            ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+        
+        //titik sebagai pemisah pada format mata uang rupiah
+        if(ribuan){
+            separator = sisa ? '.' : '';
+            rupiah += separator + ribuan.join('.');
+        }
+
+        rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+        return rupiah;
+    }
 
     /* Mengatur agar form input kode satker dan mak hanya bisa ditulis angka sebanyak 6 digit */
 
@@ -387,7 +290,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 });
-
 
 // // fungsi notifikasi data berhasil dimasukkan
 // $(document).ready(function(){

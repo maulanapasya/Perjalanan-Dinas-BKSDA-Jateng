@@ -113,9 +113,6 @@
             <div class="modal-content">
                 <div class="modal-header d-flex justify-content-center">
                     <h5 class="modal-title" id="editModalLabel">Edit Perjalanan Dinas</h5>
-                    <button type="button" class="close position-absolute" style="right: 1em;" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                 </div>
                 <div class="modal-body">
                     <form id="editForm" method="POST">
@@ -162,31 +159,16 @@
                             <textarea class="form-control" id="tujuan" name="tujuan" required></textarea>
                         </div>
                         <div id="pelaksanaContainer">
-                            <!-- Pelaksana fields will be dynamically added here -->
+                            <!-- ditambahkan secara dinamis -->
                         </div>
+                        {{-- <button type="button" class="btn btn-primary mt-3" id="addPelaksanaBtn">
+                            <i class="fas fa-plus"></i> Tambah Pelaksana
+                        </button> --}}
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
                             <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                         </div>
                     </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- modal untuk konfirmasi batal edit --}}
-    <div class="modal fade" id="confirmCancelModal" tabindex="-1" role="dialog" aria-labelledby="confirmCancelModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="confirmCancelModalLabel">Batalkan Perubahan?</h5>
-                    {{-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button> --}}
-                </div>
-                <div class="modal-body">
-                    <button class="btn btn-primary" id="confirmCancel">Ya</button>
-                    <button class="btn btn-danger" data-dismiss="modal">Tidak</button>
                 </div>
             </div>
         </div>

@@ -160,7 +160,6 @@
                         </div>
 
                         <button id ="submit" type="submit" name="submit" value="submit" class="btn btn-primary container-fluid">Input Perjalanan Dinas</button>
-                    
                     </form>
                 </div>
             </div>

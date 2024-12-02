@@ -254,7 +254,7 @@ $(document).ready(function () {
                             pelaksanaContainer.append(`
                                 <div class="pelaksana-entry border p-3 mb-3">
                                     <h5>Pelaksana ${index + 1}</h5>
-                                    <input type="hidden" name="pelaksana[${index}][id]" value="${pelaksana.id}">
+                                    <input type="hidden" name="pelaksana[${index}][id]" value="${pelaksana.id_pegawai}">
                                     <div class="form-group">
                                         <label>Nama Pegawai</label>
                                         <input type="text" class="form-control" name="pelaksana[${index}][nama_pegawai]" value="${pelaksana.nama_pegawai}" required>
@@ -283,61 +283,6 @@ $(document).ready(function () {
                     alert('Terjadi kesalahan saat mengambil data');
                 });
         });
-    
-        // Edit form submit handler
-        $('#editForm').on('submit', function(e) {
-            e.preventDefault();
-            const form = $(this);
-            const url = form.attr('action');
-            
-            // Get pelaksana data
-            const pelaksanaData = [];
-            $('.pelaksana-entry').each(function(index) {
-                pelaksanaData.push({
-                    id: $(this).find('input[name^="pelaksana["][name$="[id]"]').val(),
-                    nama_pegawai: $(this).find('input[name^="pelaksana["][name$="[nama_pegawai]"]').val(),
-                    status_pegawai: $(this).find('input[name^="pelaksana["][name$="[status_pegawai]"]').val(),
-                    no_telp: $(this).find('input[name^="pelaksana["][name$="[no_telp]"]').val(),
-                    nilai_dibayar: $(this).find('input[name^="pelaksana["][name$="[nilai_dibayar]"]').val()
-                });
-            });
-        
-            // Create data object matching controller expectations
-            const formData = {
-                _token: $('meta[name="csrf-token"]').attr('content'),
-                _method: 'PUT',
-                kodeSatker: $('#kodeSatker').val(),
-                MAK: $('#MAK').val(),
-                program: $('#program').val(),
-                kegiatan: $('#kegiatan').val(),
-                nomorSuratTugas: $('#nomorSuratTugas').val(),
-                nomorSP2D: $('#nomorSP2D').val(),
-                tanggalSuratTugas: $('#tanggalSuratTugas').val(),
-                tanggalMulaiDinas: $('#tanggalMulaiDinas').val(),
-                tanggalSelesaiDinas: $('#tanggalSelesaiDinas').val(),
-                tujuan: $('#tujuan').val(),
-                pelaksana: pelaksanaData
-            };
-        
-            $.ajax({
-                url: url,
-                method: 'POST',
-                data: formData,
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                    'Accept': 'application/json'
-                },
-                success: function(response) {
-                    $('#editModal').modal('hide');
-                    alert('Data berhasil diupdate');
-                    loadData(currentPage);
-                },
-                error: function(xhr) {
-                    console.error('Error response:', xhr.responseJSON);
-                    alert('Terjadi kesalahan: ' + (xhr.responseJSON?.message || 'Unknown error'));
-                }
-            });
-        });
 
         // Delete form handler
         $('.deleteForm').on('submit', function(e) {
@@ -347,6 +292,64 @@ $(document).ready(function () {
             }
         });
     }
+
+    // Edit form submit handler
+    $('#editForm').on('submit', function(e) {
+        e.preventDefault();
+        const form = $(this);
+        const url = form.attr('action');
+        
+        // Get pelaksana data
+        const pelaksanaData = [];
+        $('.pelaksana-entry').each(function(index) {
+            pelaksanaData.push({
+                // id: $(this).find('input[name^="pelaksana["][name$="[id]"]').val(),
+                id: parseInt($(this).find('input[name="pelaksana[' + index + '][id]"]').val()),
+                nama_pegawai: $(this).find('input[name^="pelaksana["][name$="[nama_pegawai]"]').val(),
+                status_pegawai: $(this).find('input[name^="pelaksana["][name$="[status_pegawai]"]').val(),
+                no_telp: $(this).find('input[name^="pelaksana["][name$="[no_telp]"]').val(),
+                nilai_dibayar: $(this).find('input[name^="pelaksana["][name$="[nilai_dibayar]"]').val()
+            });
+        });
+    
+        // Create data object matching controller expectations
+        const formData = {
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            _method: 'PUT',
+            kodeSatker: $('#kodeSatker').val(),
+            MAK: $('#MAK').val(),
+            program: $('#program').val(),
+            kegiatan: $('#kegiatan').val(),
+            nomorSuratTugas: $('#nomorSuratTugas').val(),
+            nomorSP2D: $('#nomorSP2D').val(),
+            tanggalSuratTugas: $('#tanggalSuratTugas').val(),
+            tanggalMulaiDinas: $('#tanggalMulaiDinas').val(),
+            tanggalSelesaiDinas: $('#tanggalSelesaiDinas').val(),
+            tujuan: $('#tujuan').val(),
+            pelaksana: pelaksanaData
+        };
+
+        // console.log(formData); // debug only
+    
+        $.ajax({
+            url: url,
+            method: 'POST',
+            data: formData,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'Accept': 'application/json'
+            },
+            success: function(response) {
+                $('#editModal').modal('hide');
+                alert('Data berhasil diupdate');
+                loadData(currentPage);
+            },
+            error: function(xhr) {
+                console.error('Error response:', xhr.responseJSON);
+                alert('Terjadi kesalahan: ' + (xhr.responseJSON?.message || 'Unknown error'));
+            }
+        });
+    });
 
     // Search input handler with debouncing
     let searchTimer;

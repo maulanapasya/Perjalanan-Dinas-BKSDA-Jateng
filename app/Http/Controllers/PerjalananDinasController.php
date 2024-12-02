@@ -19,6 +19,40 @@ class PerjalananDinasController extends Controller
 {
     public function store(Request $request)
     {
+        $messages = [
+            'kodeSatker.required' => 'Kode Satker harus diisi.',
+            'MAK.required' => 'MAK harus diisi.',
+            'nomorSuratTugas.required' => 'Nomor Surat Tugas harus diisi.',
+            'nomorSP2D.required' => 'Nomor SP2D harus diisi.',
+            'program.required' => 'Program harus diisi.',
+            'kegiatan.required' => 'Kegiatan harus diisi.',
+            'tanggalSuratTugas.required' => 'Tanggal Surat Tugas harus diisi.',
+            'tanggalMulaiDinas.required' => 'Tanggal Mulai Dinas harus diisi.',
+            'tanggalMulaiDinas.before_or_equal' => 'Tanggal Mulai Dinas harus sebelum atau sama dengan Tanggal Selesai Dinas.',
+            'tanggalSelesaiDinas.required' => 'Tanggal Selesai Dinas harus diisi.',
+            'tanggalSelesaiDinas.after_or_equal' => 'Tanggal Selesai Dinas harus setelah atau sama dengan Tanggal Mulai Dinas.',
+            'tujuan.required' => 'Tujuan harus diisi.',
+            'pelaksana.required' => 'Data Pelaksana setidaknya terdiri dari minimal 1 pelaksana.',
+            'pelaksana.*.nama_pegawai.required' => 'Pelaksana harus diisi.',
+            'pelaksana.*.status_pegawai.required' => 'Status Pegawai harus diisi.',
+            'pelaksana.*.no_telp.required' => 'Nomor Telepon harus diisi.',
+            'pelaksana.*.nilai_dibayar.required' => 'Nilai Dibayar harus diisi.',
+        ];
+
+        // Memfilter entri pelaksana yang tidak lengkap
+        if ($request->has('pelaksana')) {
+            $pelaksana = array_filter($request->input('pelaksana'), function ($pelaksanaEntry) {
+                // Cek apakah semua field yang diperlukan telah diisi
+                return !empty($pelaksanaEntry['nama_pegawai']) &&
+                    !empty($pelaksanaEntry['status_pegawai']) &&
+                    !empty($pelaksanaEntry['no_telp']) &&
+                    !empty($pelaksanaEntry['nilai_dibayar']);
+            });
+
+            // Mengganti input 'pelaksana' dengan data yang sudah difilter
+            $request->merge(['pelaksana' => $pelaksana]);
+        }
+
         //validasi input
         $validated = $request->validate([
             'kodeSatker' => 'required|string',
@@ -28,15 +62,15 @@ class PerjalananDinasController extends Controller
             'program' => 'required|string',
             'kegiatan' => 'required|string',
             'tanggalSuratTugas' => 'required|date',
-            'tanggalMulaiDinas' => 'required|date',
-            'tanggalSelesaiDinas' => 'required|date',
+            'tanggalMulaiDinas' => 'required|date|before_or_equal:tanggalSelesaiDinas',
+            'tanggalSelesaiDinas' => 'required|date|after_or_equal:tanggalMulaiDinas',
             'tujuan' => 'required|string',
-            'pelaksana' => 'required|array',
+            'pelaksana' => 'required|array|min:1',
             'pelaksana.*.nama_pegawai' => 'required|string',
             'pelaksana.*.status_pegawai' => 'required|string',
             'pelaksana.*.no_telp' => 'required|string',
             'pelaksana.*.nilai_dibayar' => 'required|string'
-        ]);
+        ], $messages);
 
         DB::beginTransaction();
         try {
@@ -117,7 +151,7 @@ class PerjalananDinasController extends Controller
     public function edit($id)
     {
         try {
-            Log::info('ID received in edit method: '.$id);
+            // Log::info('ID received in edit method: '.$id); // debug
             $perjalananDinas = PerjalananDinas::with('pelaksanaDinas','kegiatan.program','satuanKerja','MAK')->findOrFail($id);
             // $perjalananDinas = PerjalananDinas::findOrFail($id);
             // dd($perjalananDinas); // debug
@@ -144,6 +178,7 @@ class PerjalananDinasController extends Controller
             'tanggalSelesaiDinas' => 'required|date',
             'tujuan' => 'required|string',
             'pelaksana' => 'required|array',
+            'pelaksana.*.id' => 'required|integer|exists:pelaksana_dinas,id_pegawai',
             'pelaksana.*.nama_pegawai' => 'required|string',
             'pelaksana.*.status_pegawai' => 'required|string',
             'pelaksana.*.no_telp' => 'required|string',
@@ -151,8 +186,7 @@ class PerjalananDinasController extends Controller
         ]);
 
         try {
-            // Log::info('Data received in update method: '.$validated); // Log data yang diterima untuk debugging
-
+            Log::info('Data received in update method: ' . print_r($validated, true));
             DB::beginTransaction();
 
             // Mencari data perjalanan dinas berdasarkan ID
@@ -189,15 +223,16 @@ class PerjalananDinasController extends Controller
                 'id_satker' => $satuanKerja->id_satker
             ]);
 
-            // update data pelaksana dinas
             foreach ($validated['pelaksana'] as $pelaksana) {
-                $existingPelaksana =  $perjalananDinas->pelaksanaDinas()->where('id', $pelaksana['id'])->firstOrFail();
-                $existingPelaksana->update([
-                    'nama_pegawai' => $pelaksana['nama_pegawai'],
-                    'status_pegawai' => $pelaksana['status_pegawai'],
-                    'no_telp' => $pelaksana['no_telp'],
-                    'nilai_dibayar' => $pelaksana['nilai_dibayar']
-                ]);
+                if (isset($pelaksana['id'])) {
+                    $existingPelaksana = PelaksanaDinas::findOrFail($pelaksana['id']);
+                    $existingPelaksana->update([
+                        'nama_pegawai' => $pelaksana['nama_pegawai'],
+                        'status_pegawai' => $pelaksana['status_pegawai'],
+                        'no_telp' => $pelaksana['no_telp'],
+                        'nilai_dibayar' => $pelaksana['nilai_dibayar']
+                    ]);
+                }
             }
 
             // update data MAK
