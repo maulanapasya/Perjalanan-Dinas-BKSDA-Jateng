@@ -57,3 +57,9 @@ Route::get('/monitoringDinas/search',[MonitoringDinasController::class,'search']
 Route::put('/perjalanan-dinas/{id}',[PerjalananDinasController::class,'update'])->name('perjalanan-dinas.update');
 
 Route::delete('/perjalanan-dinas/{id}',[PerjalananDinasController::class,'destroy'])->name('perjalanan-dinas.destroy');
+
+Route::get('/monitoring-dinas/export-data', [MonitoringDinasController::class, 'getExportData'])->name('monitoringDinas.getExportData'); // Route untuk mengambil data ekspor
+
+Route::get('/monitoring-dinas/export-selected', [MonitoringDinasController::class, 'exportSelected'])->name('monitoringDinas.exportSelected'); // Route untuk ekspor data terpilih
+
+Route::get('/monitoring-dinas/export-all', [MonitoringDinasController::class, 'exportAll'])->name('monitoringDinas.exportAll'); // Route untuk ekspor semua data

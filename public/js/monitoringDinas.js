@@ -145,41 +145,125 @@ $(document).ready(function () {
         $('#monitoringBody').html(rows);
     }
 
-    function updatePagination(pagination) {
-        let paginationHtml = '';
-        
-        if (pagination.last_page > 1) {
-            paginationHtml += '<ul class="pagination justify-content-center">';
-            
-            // Previous button
-            paginationHtml += `
-                <li class="page-item ${pagination.current_page === 1 ? 'disabled' : ''}">
-                    <a class="page-link" href="#" data-page="${pagination.current_page - 1}" ${pagination.current_page === 1 ? 'tabindex="-1" aria-disabled="true"' : ''}>
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
-                </li>`;
-            
-            // Page numbers
-            for (let i = 1; i <= pagination.last_page; i++) {
-                paginationHtml += `
-                    <li class="page-item ${i === pagination.current_page ? 'active' : ''}">
-                        <a class="page-link" href="#" data-page="${i}">${i}</a>
-                    </li>`;
+    // Mengisi tabel pada modal saat ekspor ditekan
+    $('#exportModal').on('shown.bs.modal', function() {
+        loadExportData();
+    });
+
+    // Fungsi untuk memuat data ke tabel ekspor
+    function loadExportData(query = '') {
+        $.ajax({
+            url: exportDataUrl,
+            method: 'GET',
+            data: { query: query },
+            success: function(response) {
+                renderExportTable(response.data);
+            },
+            error: function() {
+                alert('Gagal mengambil data untuk ekspor.');
             }
-            
-            // Next button
-            paginationHtml += `
-                <li class="page-item ${pagination.current_page === pagination.last_page ? 'disabled' : ''}">
-                    <a class="page-link" href="#" data-page="${pagination.current_page + 1}" ${pagination.current_page === pagination.last_page ? 'tabindex="-1" aria-disabled="true"' : ''}>
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
-                </li>`;
-            
-            paginationHtml += '</ul>';
-        }
-        
-        $('#pagination-links').html(paginationHtml);
+        });
     }
+    // function loadExportData(query = '') {
+    //     $.ajax({
+    //         url: exportDataUrl,
+    //         method: 'GET',
+    //         data: { query: query },
+    //         success: function(response) {
+    //             console.log('Response:', response);
+    //             renderExportTable(response.data);
+    //         },
+    //         error: function(xhr, status, error) {
+    //             console.error('AJAX Error:', status, error);
+    //             console.error('Response:', xhr.responseText);
+    //             alert('Gagal mengambil data untuk ekspor.');
+    //         }
+    //     });
+    // }
+    
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        const options = { day: '2-digit', month: 'long', year: 'numeric' };
+        return date.toLocaleDateString('id-ID', options);
+    }
+    
+    
+
+    // Fungsi untuk menampilkan data ke tabel modal ekspor
+    function renderExportTable(data) {
+        let rows = '';
+        data.forEach(function(item) {
+            rows += `
+                <tr data-id="${item.id_dinas}">
+                    <td><input type="checkbox" class="export-checkbox"></td>
+                    <td>${item.satuan_kerja?.kode_satker || ''}</td>
+                    <td>${item.m_a_k?.kode_mak || ''}</td>
+                    <td>${item.nomor_sp2d || ''}</td>
+                    <td>${item.kegiatan?.program?.kode_program || ''}</td>
+                    <td>${item.kegiatan?.kode_kegiatan || ''}</td>
+                    <td>${item.nomor_surat_tugas || ''}</td>
+                    <td>${formatDate(item.tanggal_surat_tugas)}</td>
+                    <td>${formatDate(item.tanggal_mulai_dinas)}</td>
+                    <td>${formatDate(item.tanggal_selesai_dinas)}</td>
+                    <td class="text-justify">${item.tujuan_dinas || ''}</td>
+                </tr>
+            `;
+        });
+        $('#exportBody').html(rows);
+    }
+
+    // Pencarian pada modal ekspor
+    $('#export-search-box').on('input', function() {
+        const query = $(this).val();
+        loadExportData(query);
+    });
+
+    // Pilih semua checkbox modal ekspor
+    $(document).on('change', '#select-all', function() {
+        $('.export-checkbox').prop('checked', this.checked);
+        highlightSelectedRows();
+    });
+
+    // Highlight baris yang dipilih modal ekspor
+    $(document).on('change', '.export-checkbox', function() {
+        highlightSelectedRows();
+    });
+
+    function highlightSelectedRows() {
+        $('#exportBody tr').each(function() {
+            if ($(this).find('.export-checkbox').is(':checked')) {
+                $(this).addClass('table-active');
+            } else {
+                $(this).removeClass('table-active');
+            }
+        });
+    }
+
+    // Tombol ekspor data terpilih
+    $('#export-selected-btn').on('click', function() {
+        const selectedIds = [];
+        $('.export-checkbox:checked').each(function() {
+            const id = $(this).closest('tr').data('id');
+            selectedIds.push(id);
+        });
+
+        if (selectedIds.length === 0) {
+            alert('Pilih setidaknya satu data untuk diekspor.');
+            return;
+        }
+
+        // Redirect ke route ekspor dengan parameter ID
+        // window.location.href = '{{ route("monitoringDinas.exportSelected") }}' + '?ids=' + selectedIds.join(',');
+        window.location.href = exportSelectedUrl + '?ids=' + selectedIds.join(',');
+    });
+
+    // Tombol ekspor semua data
+    // $('#export-all-btn').on('click', function() {
+    //     // Redirect ke route ekspor semua data
+    //     // window.location.href = '{{ route("monitoringDinas.exportAll") }}';
+    //     window.location.href = exportAllUrl;
+    // });
 
     function attachEventHandlers() {
         // Detail button handler
@@ -360,6 +444,42 @@ $(document).ready(function () {
             loadData(currentPage);
         }, 300);
     });
+
+    function updatePagination(pagination) {
+        let paginationHtml = '';
+        
+        if (pagination.last_page > 1) {
+            paginationHtml += '<ul class="pagination justify-content-center">';
+            
+            // Previous button
+            paginationHtml += `
+                <li class="page-item ${pagination.current_page === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${pagination.current_page - 1}" ${pagination.current_page === 1 ? 'tabindex="-1" aria-disabled="true"' : ''}>
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>`;
+            
+            // Page numbers
+            for (let i = 1; i <= pagination.last_page; i++) {
+                paginationHtml += `
+                    <li class="page-item ${i === pagination.current_page ? 'active' : ''}">
+                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                    </li>`;
+            }
+            
+            // Next button
+            paginationHtml += `
+                <li class="page-item ${pagination.current_page === pagination.last_page ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${pagination.current_page + 1}" ${pagination.current_page === pagination.last_page ? 'tabindex="-1" aria-disabled="true"' : ''}>
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>`;
+            
+            paginationHtml += '</ul>';
+        }
+        
+        $('#pagination-links').html(paginationHtml);
+    }
 
     // Pagination click handler
     $(document).on('click', '.pagination .page-link', function(e) {

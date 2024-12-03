@@ -10,9 +10,14 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
 <link href="{{ asset('css/monitoringDinas.css') }}" rel="stylesheet">
+<script>
+    var exportDataUrl = '{{ route("monitoringDinas.getExportData") }}';
+    var exportSelectedUrl = '{{ route("monitoringDinas.exportSelected") }}';
+</script>
 <script src="{{ asset('js/monitoringDinas.js') }}"></script>
 
 <body>
@@ -24,7 +29,9 @@
                 <h2 class="text-center" id="monitoringHeader">Daftar Rincian Perjalanan Dinas</h2>
                 <div id="filterSection">
                     <div class="button-group">
-                        <button class="btn btn-light">Ekspor ke .xlsx</button>
+                        <button class="btn btn-success" data-toggle="modal" data-target="#exportModal" data-url>
+                            <i class="fa fa-file-excel"></i> Ekspor ke Excel
+                        </button>                        
                         {{-- <button class="btn btn-light">Sudah Terlaksana</button>
                         <button class="btn btn-light">Belum Terlaksana</button>
                         <button class="btn btn-light">30 hari terakhir</button>
@@ -174,6 +181,58 @@
         </div>
     </div>
     
+    {{-- Modal eksport ke .xlsx --}}
+    <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-export">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ekspor Data Perjalanan Dinas</h5>
+                    {{-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button> --}}
+                </div>
+    
+                <div class="modal-body">
+                    <!-- Kotak Pencarian -->
+                    <div class="input-group mb-3">
+                        <input type="text" id="export-search-box" class="form-control" placeholder="Cari data berdasarkan Kode Satker / MAK / Nomor SP2D / Program / Kegiatan / Nomor Surat Tugas / Tujuan">
+                    </div>
+    
+                    <!-- Tabel Data -->
+                    <div class="table-responsive">
+                        <table id="exportTable" class="table">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="select-all"></th>
+                                    <th>Kode Satker</th>
+                                    <th>MAK</th>
+                                    <th>Nomor SP2D</th>
+                                    <th>Program</th>
+                                    <th>Kegiatan</th>
+                                    <th>Nomor Surat Tugas</th>
+                                    <th>Tanggal Surat Tugas</th>
+                                    <th>Tanggal Mulai Dinas</th>
+                                    <th>Tanggal Selesai Dinas</th>
+                                    <th>Tujuan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="exportBody">
+                                <!-- Data akan diisi melalui JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+    
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                    <button id="export-selected-btn" class="btn btn-success">
+                        <i class="fa fa-file-excel"></i> Ekspor data terpilih ke Excel
+                    </button>  
+                    {{-- <button id="export-selected-btn" class="btn btn-primary">Ekspor data terpilih ke .xlsx</button> --}}
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 @endsection

@@ -7,6 +7,8 @@ use App\Models\PerjalananDinas;
 use App\Models\MAK;
 use App\Models\Kegiatan;
 use App\Models\SatuanKerja;
+use App\Exports\PerjalananDinasExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class monitoringDinasController extends Controller {
     public function index(Request $request)
@@ -49,5 +51,42 @@ class monitoringDinasController extends Controller {
                 'last_page' => $result->lastPage(),
             ]
         ]);
+    }
+
+    public function getExportData(Request $request)
+    {
+        $query = $request->input('query', '');
+
+        $data = PerjalananDinas::with(['satuanKerja', 'MAK', 'kegiatan.program'])
+            ->whereHas('satuanKerja', function ($q) use ($query) {
+                $q->where('kode_satker', 'like', '%' . $query . '%');
+            })
+            ->orWhereHas('MAK', function ($q) use ($query) {
+                $q->where('kode_mak', 'like', '%' . $query . '%');
+            })
+            ->orWhereHas('kegiatan', function ($q) use ($query) {
+                $q->where('kode_kegiatan', 'like', '%' . $query . '%')
+                ->orWhereHas('program', function ($q2) use ($query) {
+                    $q2->where('kode_program', 'like', '%' . $query . '%');
+                });
+            })
+            ->orWhere('nomor_sp2d', 'like', '%' . $query . '%')
+            ->orWhere('nomor_surat_tugas', 'like', '%' . $query . '%')
+            ->orWhere('tujuan_dinas', 'like', '%' . $query . '%')
+            ->get();
+
+        return response()->json(['data' => $data]);
+    }
+    
+    public function exportSelected(Request $request)
+    {
+        $ids = $request->input('ids');
+        $idArray = explode(',', $ids);
+    
+        $data = PerjalananDinas::with(['satuanKerja', 'MAK', 'kegiatan.program', 'pelaksanaDinas'])
+            ->whereIn('id_dinas', $idArray)
+            ->get();
+    
+        return Excel::download(new PerjalananDinasExport($data), 'Pejalanan Dinas BKSDA Jateng.xlsx');
     }
 }
