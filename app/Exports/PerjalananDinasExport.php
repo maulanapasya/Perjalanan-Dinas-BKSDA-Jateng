@@ -2,66 +2,66 @@
 
 namespace App\Exports;
 
+use App\Models\PerjalananDinas;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\{
+    FromCollection,
+    WithHeadings,
+    ShouldAutoSize,
+    WithEvents,
+    WithCustomStartCell
+};
+use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 
-class PerjalananDinasExport implements FromCollection, WithHeadings
+class PerjalananDinasExport implements FromCollection, WithHeadings, ShouldAutoSize, WithEvents, WithCustomStartCell
 {
-    protected $data;
-
-    public function __construct($data)
-    {
-        $this->data = $data;
-    }
-
     public function collection()
     {
-        $exportData = [];
+        $data = [];
+        $perjalananDinas = PerjalananDinas::with(['satuanKerja', 'MAK', 'kegiatan.program', 'pelaksanaDinas'])->get();
 
-        foreach ($this->data as $item) {
-            foreach ($item->pelaksanaDinas as $pelaksana) {
-                // Format dates
-                $tanggalSuratTugas = $item->tanggal_surat_tugas
-                    ? Carbon::parse($item->tanggal_surat_tugas)->locale('id')->translatedFormat('j F Y')
-                    : '';
+        $index = 1;
+        foreach ($perjalananDinas as $perjalanan) {
+            $pelaksanaList = $perjalanan->pelaksanaDinas;
+            $firstEntry = true;
 
-                $tanggalMulaiDinas = $item->tanggal_mulai_dinas
-                    ? Carbon::parse($item->tanggal_mulai_dinas)->locale('id')->translatedFormat('j F Y')
-                    : '';
-
-                $tanggalSelesaiDinas = $item->tanggal_selesai_dinas
-                    ? Carbon::parse($item->tanggal_selesai_dinas)->locale('id')->translatedFormat('j F Y')
-                    : '';
-
-                $exportData[] = [
-                    'Kode Satker' => $item->satuanKerja->kode_satker ?? '',
-                    'MAK' => $item->MAK->kode_mak ?? '',
-                    'Nomor SP2D' => $item->nomor_sp2d ?? '',
-                    'Program' => $item->kegiatan->program->kode_program ?? '',
-                    'Kegiatan' => $item->kegiatan->kode_kegiatan ?? '',
-                    'Nomor Surat Tugas' => $item->nomor_surat_tugas ?? '',
-                    'Tanggal Surat Tugas' => $tanggalSuratTugas,
-                    'Tanggal Mulai Dinas' => $tanggalMulaiDinas,
-                    'Tanggal Selesai Dinas' => $tanggalSelesaiDinas,
-                    'Tujuan Dinas' => $item->tujuan_dinas ?? '',
+            foreach ($pelaksanaList as $pelaksana) {
+                $row = [
+                    'No' => $firstEntry ? $index : '',
+                    'Kode Satker' => $perjalanan->satuanKerja->kode_satker ?? '',
+                    'Kode MAK' => $perjalanan->MAK->kode_mak ?? '',
+                    'Nomor SP2D' => $perjalanan->nomor_sp2d ?? '',
+                    'Program' => $perjalanan->kegiatan->program->kode_program ?? '',
+                    'Kegiatan' => $perjalanan->kegiatan->kode_kegiatan ?? '',
+                    'Nomor Surat Tugas' => $perjalanan->nomor_surat_tugas ?? '',
+                    'Tanggal Surat Tugas' => $perjalanan->tanggal_surat_tugas ? Carbon::parse($perjalanan->tanggal_surat_tugas)->locale('id')->translatedFormat('j F Y') : '',
+                    'Tanggal Mulai Dinas' => $perjalanan->tanggal_mulai_dinas ? Carbon::parse($perjalanan->tanggal_mulai_dinas)->locale('id')->translatedFormat('j F Y') : '',
+                    'Tanggal Selesai Dinas' => $perjalanan->tanggal_selesai_dinas ? Carbon::parse($perjalanan->tanggal_selesai_dinas)->locale('id')->translatedFormat('j F Y') : '',
+                    'Tujuan Dinas' => $perjalanan->tujuan_dinas ?? '',
                     'Nama Pelaksana' => $pelaksana->nama_pegawai ?? '',
                     'Status Pegawai' => $pelaksana->status_pegawai ?? '',
                     'No. Telp Pelaksana' => $pelaksana->no_telp ?? '',
-                    'Nilai yang Dibayar' => $pelaksana->nilai_dibayar ?? '',
+                    'Nilai yang Dibayar' => $pelaksana->nilai_dibayar ?? 0,
                 ];
+
+                $data[] = $row;
+                $firstEntry = false;
             }
+
+            $index++;
         }
 
-        return collect($exportData);
+        return collect($data);
     }
 
     public function headings(): array
     {
         return [
+            'No',
             'Kode Satker',
-            'MAK',
+            'Kode MAK',
             'Nomor SP2D',
             'Program',
             'Kegiatan',
@@ -74,6 +74,65 @@ class PerjalananDinasExport implements FromCollection, WithHeadings
             'Status Pegawai',
             'No. Telp Pelaksana',
             'Nilai yang Dibayar',
+        ];
+    }
+
+    // Memulai data dari sel A3
+    public function startCell(): string
+    {
+        return 'A3';
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function (AfterSheet $event) {
+                $lastColumn = 'O'; // Sesuaikan dengan kolom terakhir
+                $highestRow = $event->sheet->getHighestRow(); // Baris terakhir dengan data
+
+                // Menulis judul di A1 dan menggabungkannya
+                $event->sheet->setCellValue('A1', 'Rincian Biaya Perjalanan Dinas Dalam Negeri');
+                $event->sheet->mergeCells("A1:{$lastColumn}1");
+                $event->sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+                $event->sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
+
+                // Membuat header kolom menjadi bold di baris ke-3
+                $event->sheet->getStyle("A3:{$lastColumn}3")->getFont()->setBold(true);
+
+                // Mengatur border mulai dari baris ke-3 hingga data terakhir
+                $event->sheet->getStyle("A3:{$lastColumn}{$highestRow}")
+                    ->applyFromArray([
+                        'borders' => [
+                            'allBorders' => [
+                                'borderStyle' => Border::BORDER_THIN,
+                                'color' => ['argb' => 'FF000000'],
+                            ],
+                        ],
+                    ]);
+
+                // Mengatur alignment teks
+                $event->sheet->getStyle("A3:{$lastColumn}{$highestRow}")
+                    ->getAlignment()->setHorizontal('center')->setVertical('center');
+
+                // Memformat kolom 'Nilai yang Dibayar' sebagai rupiah dengan titik pemisah ribuan
+                $event->sheet->getStyle("O4:O{$highestRow}")
+                    ->getNumberFormat()
+                    ->setFormatCode('#,##0');
+
+                // Menghilangkan border pada baris ke-2
+                $event->sheet->getStyle("A2:{$lastColumn}2")->applyFromArray([
+                    'borders' => [
+                        'outline' => [
+                            'borderStyle' => Border::BORDER_NONE,
+                        ],
+                    ],
+                ]);
+
+                // Mengatur lebar kolom otomatis
+                foreach (range('A', $lastColumn) as $column) {
+                    $event->sheet->getColumnDimension($column)->setAutoSize(true);
+                }
+            },
         ];
     }
 }

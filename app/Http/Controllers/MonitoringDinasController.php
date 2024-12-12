@@ -87,6 +87,6 @@ class monitoringDinasController extends Controller {
             ->whereIn('id_dinas', $idArray)
             ->get();
     
-        return Excel::download(new PerjalananDinasExport($data), 'Pejalanan Dinas BKSDA Jateng.xlsx');
+        return Excel::download(new PerjalananDinasExport($data), 'Pejalanan Dinas Dalam Negeri Balai KSDA Jawa Tengah.xlsx');
     }
 }
