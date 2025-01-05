@@ -62,4 +62,4 @@ Route::get('/monitoring-dinas/export-data', [MonitoringDinasController::class, '
 
 Route::get('/monitoring-dinas/export-selected', [MonitoringDinasController::class, 'exportSelected'])->name('monitoringDinas.exportSelected'); // Route untuk ekspor data terpilih
 
-// Route::get('/monitoring-dinas/export-all', [MonitoringDinasController::class, 'exportAll'])->name('monitoringDinas.exportAll'); // Route untuk ekspor semua data
+Route::get('/monitoring-dinas/export-all', [MonitoringDinasController::class, 'exportAll'])->name('monitoringDinas.exportAll'); // Route untuk ekspor semua data

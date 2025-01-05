@@ -4,7 +4,6 @@ namespace App\Exports;
 
 use App\Models\PerjalananDinas;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\{
     FromCollection,
     WithHeadings,
@@ -17,39 +16,28 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class PerjalananDinasExport implements FromCollection, WithHeadings, ShouldAutoSize, WithEvents, WithCustomStartCell
 {
-    protected $ids;  // array id_dinas yang akan diekspor
+    protected $selectedIds = [];
 
-    // Terima array ID dari controller
-    public function __construct($ids = [])
+    public function __construct(array $selectedIds = [])
     {
-        $this->ids = $ids;
+        $this->selectedIds = $selectedIds;
     }
 
     public function collection()
     {
-        // Apabila user tidak pilih apa-apa, bisa handle dengan
-        // mengekspor semua data atau mengembalikan data kosong
-        // tergantung kebutuhan.
-        if (!empty($this->ids)) {
-            $perjalananDinas = PerjalananDinas::with([
-                'satuanKerja', 
-                'MAK', 
-                'kegiatan.program', 
-                'pelaksanaDinas'
-            ])->whereIn('id_dinas', $this->ids)
-              ->get();
-        } else {
-            // Jika tidak ada ID yang di-passing, boleh return kosong atau
-            // fallback ke semua data:
-            $perjalananDinas = PerjalananDinas::with([
-                'satuanKerja', 
-                'MAK', 
-                'kegiatan.program', 
-                'pelaksanaDinas'
-            ])->get();
+        $data = [];
+        $perjalananDinas = PerjalananDinas::with([
+            'satuanKerja',
+            'MAK',
+            'kegiatan.program',
+            'pelaksanaDinas'
+        ]);
+
+        if (!empty($this->selectedIds)) {
+            $perjalananDinas->whereIn('id_dinas', $this->selectedIds);
         }
 
-        $data = [];
+        $perjalananDinas = $perjalananDinas->get();
         $index = 1;
 
         foreach ($perjalananDinas as $perjalanan) {
@@ -65,20 +53,14 @@ class PerjalananDinasExport implements FromCollection, WithHeadings, ShouldAutoS
                     'Program' => $perjalanan->kegiatan->program->kode_program ?? '',
                     'Kegiatan' => $perjalanan->kegiatan->kode_kegiatan ?? '',
                     'Nomor Surat Tugas' => $perjalanan->nomor_surat_tugas ?? '',
-                    'Tanggal Surat Tugas' => $perjalanan->tanggal_surat_tugas 
-                        ? Carbon::parse($perjalanan->tanggal_surat_tugas)
-                                 ->locale('id')
-                                 ->translatedFormat('j F Y') 
+                    'Tanggal Surat Tugas' => $perjalanan->tanggal_surat_tugas
+                        ? Carbon::parse($perjalanan->tanggal_surat_tugas)->locale('id')->translatedFormat('j F Y')
                         : '',
-                    'Tanggal Mulai Dinas' => $perjalanan->tanggal_mulai_dinas 
-                        ? Carbon::parse($perjalanan->tanggal_mulai_dinas)
-                                 ->locale('id')
-                                 ->translatedFormat('j F Y') 
+                    'Tanggal Mulai Dinas' => $perjalanan->tanggal_mulai_dinas
+                        ? Carbon::parse($perjalanan->tanggal_mulai_dinas)->locale('id')->translatedFormat('j F Y')
                         : '',
-                    'Tanggal Selesai Dinas' => $perjalanan->tanggal_selesai_dinas 
-                        ? Carbon::parse($perjalanan->tanggal_selesai_dinas)
-                                 ->locale('id')
-                                 ->translatedFormat('j F Y') 
+                    'Tanggal Selesai Dinas' => $perjalanan->tanggal_selesai_dinas
+                        ? Carbon::parse($perjalanan->tanggal_selesai_dinas)->locale('id')->translatedFormat('j F Y')
                         : '',
                     'Tujuan Dinas' => $perjalanan->tujuan_dinas ?? '',
                     'Nama Pelaksana' => $pelaksana->nama_pegawai ?? '',
@@ -86,7 +68,6 @@ class PerjalananDinasExport implements FromCollection, WithHeadings, ShouldAutoS
                     'No. Telp Pelaksana' => $pelaksana->no_telp ?? '',
                     'Nilai yang Dibayar' => $pelaksana->nilai_dibayar ?? 0,
                 ];
-
                 $data[] = $row;
                 $firstEntry = false;
             }
@@ -126,19 +107,16 @@ class PerjalananDinasExport implements FromCollection, WithHeadings, ShouldAutoS
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
-                $lastColumn = 'O'; 
-                $highestRow = $event->sheet->getHighestRow(); 
+                $lastColumn = 'O';
+                $highestRow = $event->sheet->getHighestRow();
 
-                // Menulis judul di A1
                 $event->sheet->setCellValue('A1', 'Rincian Biaya Perjalanan Dinas Dalam Negeri');
                 $event->sheet->mergeCells("A1:{$lastColumn}1");
                 $event->sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
                 $event->sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
 
-                // Membuat header kolom menjadi bold di baris ke-3
                 $event->sheet->getStyle("A3:{$lastColumn}3")->getFont()->setBold(true);
 
-                // Mengatur border mulai dari baris ke-3 hingga data terakhir
                 $event->sheet->getStyle("A3:{$lastColumn}{$highestRow}")
                     ->applyFromArray([
                         'borders' => [
@@ -147,27 +125,24 @@ class PerjalananDinasExport implements FromCollection, WithHeadings, ShouldAutoS
                                 'color' => ['argb' => 'FF000000'],
                             ],
                         ],
-                    ]);
+                    ])
+                    ->getAlignment()
+                    ->setHorizontal('center')
+                    ->setVertical('center');
 
-                // Mengatur alignment teks
-                $event->sheet->getStyle("A3:{$lastColumn}{$highestRow}")
-                    ->getAlignment()->setHorizontal('center')->setVertical('center');
-
-                // Memformat kolom 'Nilai yang Dibayar'
                 $event->sheet->getStyle("O4:O{$highestRow}")
                     ->getNumberFormat()
                     ->setFormatCode('#,##0');
 
-                // Menghilangkan border pada baris ke-2
-                $event->sheet->getStyle("A2:{$lastColumn}2")->applyFromArray([
-                    'borders' => [
-                        'outline' => [
-                            'borderStyle' => Border::BORDER_NONE,
+                $event->sheet->getStyle("A2:{$lastColumn}2")
+                    ->applyFromArray([
+                        'borders' => [
+                            'outline' => [
+                                'borderStyle' => Border::BORDER_NONE,
+                            ],
                         ],
-                    ],
-                ]);
+                    ]);
 
-                // Mengatur lebar kolom otomatis
                 foreach (range('A', $lastColumn) as $column) {
                     $event->sheet->getColumnDimension($column)->setAutoSize(true);
                 }

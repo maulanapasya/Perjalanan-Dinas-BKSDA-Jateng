@@ -80,14 +80,13 @@ class monitoringDinasController extends Controller {
     
     public function exportSelected(Request $request)
     {
-        $ids = $request->input('ids');       // misalnya "1,2,3"
-        $idArray = explode(',', $ids);       // jadi [1, 2, 3]
-
-        // Langsung panggil export dengan array ID
-        return Excel::download(
-            new PerjalananDinasExport($idArray), 
-            'Perjalanan_Dinas.xlsx'
-        );
+        $ids = $request->input('ids');
+        $idArray = explode(',', $ids);
+    
+        $data = PerjalananDinas::with(['satuanKerja', 'MAK', 'kegiatan.program', 'pelaksanaDinas'])
+            ->whereIn('id_dinas', $idArray)
+            ->get();
+    
+        return Excel::download(new PerjalananDinasExport($data), 'Pejalanan Dinas Dalam Negeri Balai KSDA Jawa Tengah.xlsx');
     }
-
 }

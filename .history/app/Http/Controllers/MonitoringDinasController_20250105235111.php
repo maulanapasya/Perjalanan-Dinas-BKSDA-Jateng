@@ -79,15 +79,15 @@ class monitoringDinasController extends Controller {
     }
     
     public function exportSelected(Request $request)
-    {
-        $ids = $request->input('ids');       // misalnya "1,2,3"
-        $idArray = explode(',', $ids);       // jadi [1, 2, 3]
+{
+    $ids = $request->input('ids');       // misalnya "1,2,3"
+    $idArray = explode(',', $ids);       // jadi [1, 2, 3]
 
-        // Langsung panggil export dengan array ID
-        return Excel::download(
-            new PerjalananDinasExport($idArray), 
-            'Perjalanan_Dinas.xlsx'
-        );
-    }
+    // Langsung panggil export dengan array ID
+    return Excel::download(
+        new PerjalananDinasExport($idArray), 
+        'Perjalanan_Dinas.xlsx'
+    );
+}
 
 }

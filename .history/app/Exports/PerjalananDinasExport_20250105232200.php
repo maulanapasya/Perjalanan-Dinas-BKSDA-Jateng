@@ -17,41 +17,13 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class PerjalananDinasExport implements FromCollection, WithHeadings, ShouldAutoSize, WithEvents, WithCustomStartCell
 {
-    protected $ids;  // array id_dinas yang akan diekspor
-
-    // Terima array ID dari controller
-    public function __construct($ids = [])
-    {
-        $this->ids = $ids;
-    }
-
+    protected $sele
     public function collection()
     {
-        // Apabila user tidak pilih apa-apa, bisa handle dengan
-        // mengekspor semua data atau mengembalikan data kosong
-        // tergantung kebutuhan.
-        if (!empty($this->ids)) {
-            $perjalananDinas = PerjalananDinas::with([
-                'satuanKerja', 
-                'MAK', 
-                'kegiatan.program', 
-                'pelaksanaDinas'
-            ])->whereIn('id_dinas', $this->ids)
-              ->get();
-        } else {
-            // Jika tidak ada ID yang di-passing, boleh return kosong atau
-            // fallback ke semua data:
-            $perjalananDinas = PerjalananDinas::with([
-                'satuanKerja', 
-                'MAK', 
-                'kegiatan.program', 
-                'pelaksanaDinas'
-            ])->get();
-        }
-
         $data = [];
-        $index = 1;
+        $perjalananDinas = PerjalananDinas::with(['satuanKerja', 'MAK', 'kegiatan.program', 'pelaksanaDinas'])->get();
 
+        $index = 1;
         foreach ($perjalananDinas as $perjalanan) {
             $pelaksanaList = $perjalanan->pelaksanaDinas;
             $firstEntry = true;
@@ -65,21 +37,9 @@ class PerjalananDinasExport implements FromCollection, WithHeadings, ShouldAutoS
                     'Program' => $perjalanan->kegiatan->program->kode_program ?? '',
                     'Kegiatan' => $perjalanan->kegiatan->kode_kegiatan ?? '',
                     'Nomor Surat Tugas' => $perjalanan->nomor_surat_tugas ?? '',
-                    'Tanggal Surat Tugas' => $perjalanan->tanggal_surat_tugas 
-                        ? Carbon::parse($perjalanan->tanggal_surat_tugas)
-                                 ->locale('id')
-                                 ->translatedFormat('j F Y') 
-                        : '',
-                    'Tanggal Mulai Dinas' => $perjalanan->tanggal_mulai_dinas 
-                        ? Carbon::parse($perjalanan->tanggal_mulai_dinas)
-                                 ->locale('id')
-                                 ->translatedFormat('j F Y') 
-                        : '',
-                    'Tanggal Selesai Dinas' => $perjalanan->tanggal_selesai_dinas 
-                        ? Carbon::parse($perjalanan->tanggal_selesai_dinas)
-                                 ->locale('id')
-                                 ->translatedFormat('j F Y') 
-                        : '',
+                    'Tanggal Surat Tugas' => $perjalanan->tanggal_surat_tugas ? Carbon::parse($perjalanan->tanggal_surat_tugas)->locale('id')->translatedFormat('j F Y') : '',
+                    'Tanggal Mulai Dinas' => $perjalanan->tanggal_mulai_dinas ? Carbon::parse($perjalanan->tanggal_mulai_dinas)->locale('id')->translatedFormat('j F Y') : '',
+                    'Tanggal Selesai Dinas' => $perjalanan->tanggal_selesai_dinas ? Carbon::parse($perjalanan->tanggal_selesai_dinas)->locale('id')->translatedFormat('j F Y') : '',
                     'Tujuan Dinas' => $perjalanan->tujuan_dinas ?? '',
                     'Nama Pelaksana' => $pelaksana->nama_pegawai ?? '',
                     'Status Pegawai' => $pelaksana->status_pegawai ?? '',
@@ -90,6 +50,7 @@ class PerjalananDinasExport implements FromCollection, WithHeadings, ShouldAutoS
                 $data[] = $row;
                 $firstEntry = false;
             }
+
             $index++;
         }
 
@@ -117,6 +78,7 @@ class PerjalananDinasExport implements FromCollection, WithHeadings, ShouldAutoS
         ];
     }
 
+    // Memulai data dari sel A3
     public function startCell(): string
     {
         return 'A3';
@@ -126,10 +88,10 @@ class PerjalananDinasExport implements FromCollection, WithHeadings, ShouldAutoS
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
-                $lastColumn = 'O'; 
-                $highestRow = $event->sheet->getHighestRow(); 
+                $lastColumn = 'O'; // Sesuaikan dengan kolom terakhir
+                $highestRow = $event->sheet->getHighestRow(); // Baris terakhir dengan data
 
-                // Menulis judul di A1
+                // Menulis judul di A1 dan menggabungkannya
                 $event->sheet->setCellValue('A1', 'Rincian Biaya Perjalanan Dinas Dalam Negeri');
                 $event->sheet->mergeCells("A1:{$lastColumn}1");
                 $event->sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
@@ -153,7 +115,7 @@ class PerjalananDinasExport implements FromCollection, WithHeadings, ShouldAutoS
                 $event->sheet->getStyle("A3:{$lastColumn}{$highestRow}")
                     ->getAlignment()->setHorizontal('center')->setVertical('center');
 
-                // Memformat kolom 'Nilai yang Dibayar'
+                // Memformat kolom 'Nilai yang Dibayar' sebagai rupiah dengan titik pemisah ribuan
                 $event->sheet->getStyle("O4:O{$highestRow}")
                     ->getNumberFormat()
                     ->setFormatCode('#,##0');
